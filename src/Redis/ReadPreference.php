@@ -17,6 +17,11 @@ namespace JP\Redis;
 final class ReadPreference {
 
     /**
+     * Read from any available node
+     */
+    const RP_ANY = 0;
+
+    /**
      * Always read from primary
      */
     const RP_PRIMARY = 1;

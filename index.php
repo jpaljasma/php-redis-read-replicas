@@ -1,6 +1,8 @@
 <?php
 
+use JP\Redis\Client;
 use JP\Redis\ReplicaSetClient;
+use JP\Redis\ReadPreference;
 
 date_default_timezone_set('America/New_York');
 
@@ -46,6 +48,13 @@ spl_autoload_register(function ($class) {
     }
 });
 
-$rrr = new ReplicaSetClient([]);
+$rsc = new ReplicaSetClient(
+    [
+        [ Client::OPT_HOST => '127.0.0.1', Client::OPT_PORT => 6379, ],
+        [ Client::OPT_HOST => '127.0.0.1', Client::OPT_PORT => 16379, ],
+    ],
+    ReadPreference::RP_SECONDARY_PREFERRED
+);
 
-var_dump($rrr);
+var_dump($rsc->getWriteAdapter());
+var_dump($rsc->getReadAdapter());
