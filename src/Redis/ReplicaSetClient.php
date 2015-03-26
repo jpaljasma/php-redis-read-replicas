@@ -52,22 +52,26 @@ class ReplicaSetClient {
     /**
      * @param array $servers Array of servers
      * @param int $readPreference Read preference, defaults to a primary
+     * @param string $cachePrefix Cache prefix
      * @throws \Exception
      */
-    function __construct( $servers, $readPreference = null )
+    function __construct( $servers, $readPreference = null, $cachePrefix = null )
     {
         if (!extension_loaded(self::EXT_REDIS)) {
             throw new \Exception(self::ERR_NO_REDIS_EXT);
         }
 
+        $options = [];
+        if(null !== $cachePrefix) $options[Client::OPT_CACHE_PREFIX] = $cachePrefix;
+
         // first server is always a primary
         $primary = array_shift($servers);
-        $this->_primaryClient = new Client($primary);
+        $this->_primaryClient = new Client($primary, $options);
 
         // configure any secondary server(s) if any
         if(sizeof($servers)) {
             foreach($servers as $secondary) {
-                $this->_secondaryClients[] = new Client($secondary);
+                $this->_secondaryClients[] = new Client($secondary, $options);
             }
         }
 

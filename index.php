@@ -50,11 +50,26 @@ spl_autoload_register(function ($class) {
 
 $rsc = new ReplicaSetClient(
     [
-        [ Client::OPT_HOST => '127.0.0.1', Client::OPT_PORT => 6379, ],
+        [ Client::OPT_HOST => '127.0.0.1' ],
         [ Client::OPT_HOST => '127.0.0.1', Client::OPT_PORT => 16379, ],
+        [ Client::OPT_HOST => 'awscluster.xxxxxx.0001.use1.cache.amazonaws.com' ]
     ],
-    ReadPreference::RP_SECONDARY_PREFERRED
+    ReadPreference::RP_SECONDARY,
+    'my_cache_prefix_001'
 );
 
-var_dump($rsc->getWriteAdapter());
-var_dump($rsc->getReadAdapter());
+$writeRedis = $rsc->getWriteAdapter();
+$readRedis = $rsc->getReadAdapter();
+
+var_dump($rsc);
+
+// flip a coin and write random number to a primary
+if(0 === mt_rand(0,2)) $writeRedis->setex('randomNumber', 60, mt_rand(0, mt_getrandmax()));
+$writeRedis->incr('counter');
+
+// read values from secondary and print
+var_dump($readRedis->get('randomNumber'));
+var_dump((int)$readRedis->get('counter'));
+
+var_dump($writeRedis);
+var_dump($readRedis);
