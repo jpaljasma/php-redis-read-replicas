@@ -48,6 +48,11 @@ spl_autoload_register(function ($class) {
     }
 });
 
+
+/** tests */
+
+if(!extension_loaded('xdebug')) echo '<pre>';
+
 $rsc = new ReplicaSetClient(
     [
         [ Client::OPT_HOST => '127.0.0.1' ],
@@ -64,12 +69,24 @@ $readRedis = $rsc->getReadAdapter();
 var_dump($rsc);
 
 // flip a coin and write random number to a primary
-if(0 === mt_rand(0,2)) $writeRedis->setex('randomNumber', 60, mt_rand(0, mt_getrandmax()));
+if(!$writeRedis->get('randomNumber') ||  0 === mt_rand(0,2)) {
+    $writeRedis->setex('randomNumber', 60, mt_rand(0, mt_getrandmax()));
+}
 $writeRedis->incr('counter');
 
 // read values from secondary and print
-var_dump($readRedis->get('randomNumber'));
-var_dump((int)$readRedis->get('counter'));
+$readRandom = $readRedis->get('randomNumber');
+$writeRandom = $writeRedis->get('randomNumber');
+var_dump($readRandom);
+var_dump($writeRandom);
+
+$readCounter = (int)$readRedis->get('counter');
+$writeCounter = (int)$writeRedis->get('counter');
+var_dump($readCounter);
+var_dump($writeCounter);
 
 var_dump($writeRedis);
 var_dump($readRedis);
+
+$writeRedis->close();
+$readRedis->close();
